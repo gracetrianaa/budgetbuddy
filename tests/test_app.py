@@ -1,11 +1,10 @@
 import unittest
-from app.app import app
+from app.app import create_app
 
 class BudgetAppTestCase(unittest.TestCase):
     def setUp(self):
-        self.app = app.test_client()
+        self.app = create_app().test_client()
         self.app.testing = True
-        # Reset the global state before each test
         self.reset_global_state()
 
     def reset_global_state(self):
