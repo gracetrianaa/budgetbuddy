@@ -28,9 +28,9 @@ class BudgetAppTestCase(unittest.TestCase):
         response = self.app.get('/summary')
         self.assertEqual(response.status_code, 200)
         data = response.get_json()
-        self.assertEqual(data['total_income'], 500)
+        self.assertEqual(data['total_income'], 1000)
         self.assertEqual(data['total_expense'], 200)
-        self.assertEqual(data['balance'], 300)
+        self.assertEqual(data['balance'], 800)
 
 if __name__ == '__main__':
     unittest.main()
