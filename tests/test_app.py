@@ -5,6 +5,13 @@ class BudgetAppTestCase(unittest.TestCase):
     def setUp(self):
         self.app = app.test_client()
         self.app.testing = True
+        # Reset the global state before each test
+        self.reset_global_state()
+
+    def reset_global_state(self):
+        global total_income, total_expense
+        total_income = 0
+        total_expense = 0
 
     def test_add_income(self):
         response = self.app.post('/add_income', json={'amount': 500})
