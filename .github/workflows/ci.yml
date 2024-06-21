@@ -91,6 +91,10 @@ jobs:
           USER: ${{ secrets.SSH_USER }}
         run: |
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa $USER@$HOST << 'EOF'
+            if ! [ -x "$(command -v docker)" ]; then
+              curl -fsSL https://get.docker.com -o get-docker.sh
+              sh get-docker.sh
+            fi
             docker pull gracetriana/income-expense-app:latest
             docker stop income-expense-app || true
             docker rm income-expense-app || true
