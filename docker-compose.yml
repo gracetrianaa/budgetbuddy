@@ -1,8 +1,9 @@
 version: "3"
 
 services:
-  web:
+  app:
     build: .
+    image: gracetriana/income-expense-app:latest
     container_name: income-expense-app
     ports:
       - "5000:5000"
