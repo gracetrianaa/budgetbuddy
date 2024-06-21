@@ -1,5 +1,5 @@
 import unittest
-from app.app import create_app
+from budgetbuddy.app.app import create_app
 
 class BudgetAppTestCase(unittest.TestCase):
     def setUp(self):
