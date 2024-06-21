@@ -33,10 +33,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: "3.8"
 
@@ -65,7 +65,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set up SSH
         run: |
@@ -95,8 +95,8 @@ jobs:
               curl -fsSL https://get.docker.com -o get-docker.sh
               sh get-docker.sh
             fi
-            docker pull gracetriana/income-expense-app:latest
-            docker stop income-expense-app || true
-            docker rm income-expense-app || true
-            docker run -d --name income-expense-app -p 5000:5000 gracetriana/income-expense-app:latest
+            sudo docker pull gracetriana/income-expense-app:latest
+            sudo docker stop income-expense-app || true
+            sudo docker rm income-expense-app || true
+            sudo docker run -d --name income-expense-app -p 5000:5000 gracetriana/income-expense-app:latest
           EOF
