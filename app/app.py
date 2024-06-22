@@ -12,17 +12,34 @@ total_expense = 0
 app = Flask(__name__, template_folder='templates')
 
 # MySQL configurations
-app.config['MYSQL_HOST'] = os.getenv('MYSQL_HOST', 'localhost')
+app.config['MYSQL_HOST'] = os.getenv('MYSQL_HOST', 'db')
 app.config['MYSQL_USER'] = os.getenv('MYSQL_USER', 'root')
 app.config['MYSQL_PASSWORD'] = os.getenv('MYSQL_PASSWORD', 'root_password')
 app.config['MYSQL_DB'] = os.getenv('MYSQL_DB', 'income_expense_db')
 
 mysql = MySQL(app)
 
+def create_transactions_table():
+    cur = mysql.connection.cursor()
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS transactions (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            type VARCHAR(10) NOT NULL,
+            amount DECIMAL(10, 2) NOT NULL,
+            date DATETIME NOT NULL,
+            balance DECIMAL(10, 2) NOT NULL DEFAULT 0.00
+        )
+    """)
+    mysql.connection.commit()
+    cur.close()
+
 def reset_global_state():
     global total_income, total_expense
     total_income = 0
     total_expense = 0
+
+with app.app_context():
+    create_transactions_table()
 
 @app.route('/')
 def index():
