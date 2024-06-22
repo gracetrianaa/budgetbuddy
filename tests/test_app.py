@@ -32,9 +32,9 @@ class BudgetAppTestCase(unittest.TestCase):
         data = response.get_json()
         self.assertEqual(len(data), 1) 
         summary = data[0]
-        self.assertEqual(summary['total_income'], 500)
-        self.assertEqual(summary['total_expense'], 200)
-        self.assertEqual(summary['balance'], 300)
+        self.assertEqual(summary['total_income'], '500')
+        self.assertEqual(summary['total_expense'], '200')
+        self.assertEqual(summary['balance'], '300')
 
     def tearDown(self):
         # Clean up the database after each test
