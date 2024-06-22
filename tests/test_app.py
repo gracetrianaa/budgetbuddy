@@ -1,5 +1,6 @@
 import unittest
 from app.app import app, reset_global_state, mysql
+from decimal import Decimal
 
 class BudgetAppTestCase(unittest.TestCase):
     def setUp(self):
@@ -31,9 +32,9 @@ class BudgetAppTestCase(unittest.TestCase):
         data = response.get_json()
         self.assertEqual(len(data), 1) 
         summary = data[0]
-        self.assertEqual(summary['total_income'], 500.0)
-        self.assertEqual(summary['total_expense'], 200.0)
-        self.assertEqual(summary['balance'], 300.0)
+        self.assertEqual(summary['total_income'], Decimal('500.00'))
+        self.assertEqual(summary['total_expense'], Decimal('200.00'))
+        self.assertEqual(summary['balance'], Decimal('300.00'))
 
     def tearDown(self):
         # Clean up the database after each test
