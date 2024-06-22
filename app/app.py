@@ -1,4 +1,8 @@
 from flask import Flask, request, jsonify, render_template
+from flask_mysqldb import MySQL
+import os
+from datetime import datetime, timedelta
+from apscheduler.schedulers.background import BackgroundScheduler
 
 # Assuming you are storing these in-memory for simplicity
 total_income = 0
@@ -7,34 +11,91 @@ total_expense = 0
 
 app = Flask(__name__, template_folder='templates')
 
+# MySQL configurations
+app.config['MYSQL_HOST'] = os.getenv('MYSQL_HOST', 'localhost')
+app.config['MYSQL_USER'] = os.getenv('MYSQL_USER', 'root')
+app.config['MYSQL_PASSWORD'] = os.getenv('MYSQL_PASSWORD', 'root_password')
+app.config['MYSQL_DB'] = os.getenv('MYSQL_DB', 'income_expense_db')
+
+mysql = MySQL(app)
+
+def reset_global_state():
+    global total_income, total_expense
+    total_income = 0
+    total_expense = 0
+
 @app.route('/')
 def index():
     return render_template('index.html')
 
 @app.route('/add_income', methods=['POST'])
 def add_income():
-    global total_income
-    data = request.get_json()
-    amount = data['amount']
-    total_income += amount
-    return jsonify({"message": "Income added", "total_income": total_income})
+    amount = request.json['amount']
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT balance FROM transactions ORDER BY date DESC LIMIT 1")
+    last_balance = cur.fetchone()
+    if last_balance:
+        new_balance = last_balance[0] + amount
+    else:
+        new_balance = amount
+    cur.execute("INSERT INTO transactions (type, amount, date, balance) VALUES (%s, %s, %s, %s)", ('income', amount, datetime.now(), new_balance))
+    mysql.connection.commit()
+    cur.close()
+    return jsonify({'message': 'Income added successfully'})
 
 @app.route('/add_expense', methods=['POST'])
 def add_expense():
-    global total_expense
-    data = request.get_json()
-    amount = data['amount']
-    total_expense += amount
-    return jsonify({"message": "Expense added", "total_expense": total_expense})
+    amount = request.json['amount']
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT balance FROM transactions ORDER BY date DESC LIMIT 1")
+    last_balance = cur.fetchone()
+    if last_balance:
+        new_balance = last_balance[0] - amount
+    else:
+        new_balance = -amount
+    cur.execute("INSERT INTO transactions (type, amount, date, balance) VALUES (%s, %s, %s, %s)", ('expense', amount, datetime.now(), new_balance))
+    mysql.connection.commit()
+    cur.close()
+    return jsonify({'message': 'Expense added successfully'})
 
-@app.route('/summary', methods=['GET'])
-def summary():
-    balance = total_income - total_expense
-    return jsonify({
-        "total_income": total_income,
-        "total_expense": total_expense,
-        "balance": balance
-    })
+@app.route('/daily_summaries', methods=['GET'])
+def daily_summaries():
+    cur = mysql.connection.cursor()
+    cur.execute("""
+        SELECT 
+            date, 
+            SUM(CASE WHEN type='income' THEN amount ELSE 0 END) as total_income, 
+            SUM(CASE WHEN type='expense' THEN amount ELSE 0 END) as total_expense, 
+            MAX(balance) as balance
+        FROM transactions 
+        GROUP BY date 
+        ORDER BY date DESC
+    """)
+    data = cur.fetchall()
+    cur.close()
+
+    daily_summaries = []
+    for row in data:
+        daily_summaries.append({
+            'date': row[0].strftime("%Y-%m-%d %H:%M:%S"),
+            'total_income': row[1],
+            'total_expense': row[2],
+            'balance': row[3]
+        })
+
+    return jsonify(daily_summaries)
+
+@app.route('/delete_all', methods=['POST'])
+def delete_all_summaries():
+    try:
+        cur = mysql.connection.cursor()
+        cur.execute("DELETE FROM transactions")
+        mysql.connection.commit()
+        cur.close()
+        return jsonify({'message': 'All daily summaries deleted successfully'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

@@ -1,5 +1,5 @@
 import unittest
-from app.app import app
+from app.app import app, reset_global_state, mysql
 
 class BudgetAppTestCase(unittest.TestCase):
     def setUp(self):
@@ -8,9 +8,8 @@ class BudgetAppTestCase(unittest.TestCase):
         self.reset_global_state()
 
     def reset_global_state(self):
-        global total_income, total_expense
-        total_income = 0
-        total_expense = 0
+        with app.app_context():
+            reset_global_state()
 
     def test_add_income(self):
         response = self.app.post('/add_income', json={'amount': 500})
@@ -25,12 +24,22 @@ class BudgetAppTestCase(unittest.TestCase):
     def test_summary(self):
         # self.app.post('/add_income', json={'amount': 500})
         # self.app.post('/add_expense', json={'amount': 200})
-        response = self.app.get('/summary')
+        response = self.app.get('/daily_summaries')
         self.assertEqual(response.status_code, 200)
         data = response.get_json()
-        self.assertEqual(data['total_income'], 500)
-        self.assertEqual(data['total_expense'], 200)
-        self.assertEqual(data['balance'], 300)
+        self.assertEqual(len(data), 1) 
+        summary = data[0]
+        self.assertEqual(summary['total_income'], 500)
+        self.assertEqual(summary['total_expense'], 200)
+        self.assertEqual(summary['balance'], 300)
+
+    def tearDown(self):
+        # Clean up the database after each test
+        with app.app_context():
+            cur = mysql.connection.cursor()
+            cur.execute("DELETE FROM transactions")
+            mysql.connection.commit()
+            cur.close()
 
 if __name__ == '__main__':
     unittest.main()

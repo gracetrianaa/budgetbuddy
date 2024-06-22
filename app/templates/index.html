@@ -18,9 +18,27 @@
       <input type="number" id="expense" placeholder="Expense Amount" />
       <button onclick="addExpense()">Add Expense</button>
 
-      <h2>Summary</h2>
+      <!-- <h2>Summary</h2>
       <button onclick="getSummary()">Get Summary</button>
-      <div id="summary"></div>
+      <div id="summary"></div> -->
+    </div>
+
+    <h2>Daily Summaries</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Total Income</th>
+            <th>Total Expense</th>
+            <th>Balance</th>
+          </tr>
+        </thead>
+        <tbody id="summary-table-body">
+          <!-- Data will be inserted here -->
+        </tbody>
+      </table>
+      <button onclick="fetchDailySummaries()">Get Daily Summaries</button>
+      <button id="delete" onclick="deleteAllSummaries()">Delete All Summaries</button>
     </div>
 
     <script>
@@ -54,17 +72,43 @@
           });
       }
 
-      function getSummary() {
-        fetch("/summary")
-          .then((response) => response.json())
-          .then((data) => {
-            document.getElementById("summary").innerHTML = `
-                    <p>Total Income: ${data.total_income}</p>
-                    <p>Total Expense: ${data.total_expense}</p>
-                    <p>Balance: ${data.balance}</p>
-                `;
+
+      async function fetchDailySummaries() {
+        try {
+          const response = await fetch("/daily_summaries");
+          const data = await response.json();
+          const summaryTableBody = document.getElementById("summary-table-body");
+          summaryTableBody.innerHTML = "";
+          data.forEach((summary) => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+              <td>${summary.date}</td>
+              <td>${summary.total_income}</td>
+              <td>${summary.total_expense}</td>
+              <td>${summary.balance}</td>
+            `;
+            summaryTableBody.appendChild(row);
           });
+        } catch (error) {
+          console.error(error);
+        }
       }
+
+      function deleteAllSummaries() {
+        fetch('/delete_all', {
+            method: 'POST',
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message);  
+            fetchDailySummaries();  
+        })
+        .catch(error => console.error('Error deleting summaries:', error));
+      }
+
+
+      window.onload = fetchDailySummaries;
+
     </script>
   </body>
 </html>
