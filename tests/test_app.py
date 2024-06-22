@@ -25,15 +25,15 @@ class BudgetAppTestCase(unittest.TestCase):
         with app.app_context():
             self.app.post('/add_income', json={'amount': 500})
             self.app.post('/add_expense', json={'amount': 200})
-            
+
         response = self.app.get('/daily_summaries')
         self.assertEqual(response.status_code, 200)
         data = response.get_json()
         self.assertEqual(len(data), 1) 
         summary = data[0]
-        self.assertEqual(summary['total_income'], 500)
-        self.assertEqual(summary['total_expense'], 200)
-        self.assertEqual(summary['balance'], 300)
+        self.assertEqual(summary['total_income'], 500.00)
+        self.assertEqual(summary['total_expense'], 200.00)
+        self.assertEqual(summary['balance'], 300.00)
 
     def tearDown(self):
         # Clean up the database after each test
