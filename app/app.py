@@ -25,21 +25,22 @@ def create_transactions_table():
         CREATE TABLE IF NOT EXISTS transactions (
             id INT AUTO_INCREMENT PRIMARY KEY,
             type VARCHAR(10) NOT NULL,
-            amount DECIMAL(10, 2) NOT NULL,
+            amount INT NOT NULL,
             date DATETIME NOT NULL,
-            balance DECIMAL(10, 2) NOT NULL DEFAULT 0.00
+            balance INT NOT NULL 
         )
     """)
     mysql.connection.commit()
     cur.close()
+
+with app.app_context():
+    create_transactions_table()
 
 def reset_global_state():
     global total_income, total_expense
     total_income = 0
     total_expense = 0
 
-with app.app_context():
-    create_transactions_table()
 
 @app.route('/')
 def index():
